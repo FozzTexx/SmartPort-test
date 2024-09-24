@@ -57,7 +57,7 @@ void main()
   SmartPort_Parameters parms;
   uint8_t err, rcv;
   uint16_t tries;
-  int idx, dev_count, found_fuji;
+  int idx, dev_count, found_fuji, command;
 
 
   printf("Hello\n");
@@ -73,7 +73,8 @@ void main()
     
     parms.count = 1;
     parms.unit = 0;
-    err = callsp(SmartPort_MLI, SP_CMD_INIT, (address) &parms);
+    command = SP_CMD_INIT;
+    err = callsp(SmartPort_MLI, command, (address) &parms);
     if (err)
       goto done;
 
@@ -81,8 +82,9 @@ void main()
     parms.unit = 0;
     parms.status = (address) buffer;
     parms.type = 0;
-    
-    err = callsp(SmartPort_MLI, SP_CMD_STATUS, (address) &parms);
+
+    command = SP_CMD_STATUS;
+    err = callsp(SmartPort_MLI, command, (address) &parms);
     if (err)
       goto done;
 
@@ -98,7 +100,8 @@ void main()
       parms.status = (address) buffer;
       parms.type = 3;
 
-      err = callsp(SmartPort_MLI, SP_CMD_STATUS, (address) &parms);
+      command = SP_CMD_STATUS;
+      err = callsp(SmartPort_MLI, command, (address) &parms);
       if (err)
 	goto done;
 
@@ -113,7 +116,7 @@ void main()
     }
 
   done:
-    printf("Tries: %i  Error: %02x\n", tries, err);
+    printf("Tries: %i  Cmd: %i  Unit: %i  Error: %02x\n", tries, command, parms.unit, err);
   }
 
   return;
