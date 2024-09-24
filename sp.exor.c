@@ -105,7 +105,7 @@ void main()
       if (err)
 	goto done;
 
-      if (!found_fuji && strncmp(&buffer[5], "FUJINET", 7))
+      if (!found_fuji && !strncmp(&buffer[5], "FUJINET", 7))
 	found_fuji = 1;
       printf("    %i: %.*s\n", idx, buffer[4], &buffer[5]);
     }
