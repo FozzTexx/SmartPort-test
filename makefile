@@ -1,13 +1,15 @@
 PLATFORM=apple2enh
 CC=cl65
-CFLAGS=-O
+FUJINET_LIB_DIR=$(HOME)/source/fujinet/fujinet-lib
+CFLAGS=-O -I$(FUJINET_LIB_DIR)
+LIBS=$(FUJINET_LIB_DIR)/build/fujinet.lib
 
 define single-to-double
   unsingle $< && mv $<.ad $@ && mv .AppleDouble/$<.ad .AppleDouble/$@
 endef
 
 define link-bin
-  $(CC) -m $@.map -vm -t $(PLATFORM) $(LDFLAGS) $(LIBS) $^ -o $@
+  $(CC) -m $@.map -vm -t $(PLATFORM) $(LDFLAGS) $^ $(LIBS) -o $@
 endef
 
 all: sp.exor
