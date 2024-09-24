@@ -1,0 +1,7 @@
+*~
+*.o
+*.bin
+*.lst
+*.map
+sp.exor
+.AppleDouble
