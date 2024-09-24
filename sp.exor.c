@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <conio.h>
 #include <stdint.h>
+#include <string.h>
 
 typedef uint8_t *address;
 
@@ -28,7 +29,7 @@ typedef struct {
 } SmartPort_Parameters;
 
 address SmartPort_MLI;
-char buffer[20];
+char buffer[32];
 
 address find_smartport()
 {
@@ -55,14 +56,15 @@ void main()
 {
   SmartPort_Parameters parms;
   uint8_t err, rcv;
-  uint16_t count;
+  uint16_t tries;
+  int idx, dev_count, found_fuji;
 
 
   printf("Hello\n");
   SmartPort_MLI = find_smartport();
   printf("SmartPort: %04x\n", SmartPort_MLI);
 
-  for (err = count = 0; !err; count++) {
+  for (err = tries = 0; !err; tries++) {
     if (kbhit()) {
       rcv = cgetc();
       if (rcv == 27)
@@ -81,14 +83,37 @@ void main()
     parms.type = 0;
     
     err = callsp(SmartPort_MLI, SP_CMD_STATUS, (address) &parms);
-    if (!err) {
-      printf("  Num devices: %i\n", buffer[0]);
-      if (!buffer[0])
-        break;
+    if (err)
+      goto done;
+
+    dev_count = buffer[0];
+    printf("  Num devices: %i\n", dev_count);
+    if (!dev_count)
+      break;
+
+    // Walk all devices to find FujiNet
+    for (found_fuji = 0, idx = 1; idx <= dev_count; idx++) {
+      parms.count = 3;
+      parms.unit = idx;
+      parms.status = (address) buffer;
+      parms.type = 3;
+
+      err = callsp(SmartPort_MLI, SP_CMD_STATUS, (address) &parms);
+      if (err)
+	goto done;
+
+      if (!found_fuji && strncmp(&buffer[5], "FUJINET", 7))
+	found_fuji = 1;
+      printf("    %i: %.*s\n", idx, buffer[4], &buffer[5]);
+    }
+
+    if (!found_fuji) {
+      printf("No FujiNet\n");
+      break;
     }
 
   done:
-    printf("Count: %i  Error: %02x\n", count, err);
+    printf("Tries: %i  Error: %02x\n", tries, err);
   }
 
   return;
