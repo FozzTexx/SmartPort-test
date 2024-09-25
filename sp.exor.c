@@ -4,11 +4,10 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <fujinet-fuji.h>
-
 typedef uint8_t *address;
 
 #include "callsp.h"
+#include "interface.h"
 
 enum {
   SP_CMD_STATUS         = 0x00,
@@ -32,7 +31,6 @@ typedef struct {
 
 address SmartPort_MLI;
 char buffer[32];
-AdapterConfigExtended ace;
 
 address find_smartport()
 {
@@ -63,16 +61,9 @@ void main()
   int idx, dev_count, found_fuji, command;
 
 
-  printf("Hello\n");
+  ui_init();
+
   SmartPort_MLI = find_smartport();
-  printf("SmartPort: %04x\n", SmartPort_MLI);
-
-  if (!fuji_get_adapter_config_extended(&ace)) {
-    printf("Could not read adapter config.\n");
-    return;
-  }
-
-  printf("FujiNet version: %s\n", ace.fn_version);
 
   for (err = tries = 0; !err; tries++) {
     if (kbhit()) {
@@ -80,6 +71,8 @@ void main()
       if (rcv == 27)
         break;
     }
+
+    update_tries(tries);
 
     parms.count = 1;
     parms.unit = 0;
@@ -126,9 +119,8 @@ void main()
     }
 
   done:
-    printf("Tries: %i  Cmd: %i  Unit: %i  Error: %02x\n", tries, command, parms.unit, err);
+    printf("Cmd: %i  Unit: %i  Error: %02x\n", command, parms.unit, err);
   }
 
-  printf("FujiNet version: %s\n", ace.fn_version);
   return;
 }
