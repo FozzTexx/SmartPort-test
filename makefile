@@ -19,6 +19,10 @@ sp.exor: sp.exor.bin
 sp.exor.bin: sp.exor.o callsp.o appleid.o interface.o
 	$(link-bin)
 
+sp.exor.o: sp.exor.c appleid.h interface.h callsp.h
+appleid.o: appleid.c appleid.h
+interface.o: interface.c interface.h
+
 .c.o:
 	$(CC) -l $(basename $@).lst -c $(CFLAGS) -t $(PLATFORM) $< -o $@
 
