@@ -2,9 +2,6 @@
 #include <conio.h>
 #include <stdio.h>
 #include <peekpoke.h>
-#include <fujinet-fuji.h>
-
-AdapterConfigExtended ace;
 
 #define WINDOW_LEFT	32
 #define WINDOW_WIDTH	33
@@ -14,7 +11,7 @@ AdapterConfigExtended ace;
 #define LOC_TRIES_X	0
 #define LOC_TRIES_Y	4
 
-void ui_init()
+void ui_init(const char *fn_version)
 {
   int x, y;
 
@@ -27,14 +24,8 @@ void ui_init()
   clrscr();
 
   gotoxy(0, 0);
-  printf("Machine: %s", apple_name(get_ostype()));
-
-  if (fuji_get_adapter_config_extended(&ace)) {
-    gotoxy(0, 1);
-    printf("FujiNet: %s", ace.fn_version);
-  }
-
-  gotoxy(0, 2);
+  printf("Machine: %s\n", apple_name(get_ostype()));
+  printf("FujiNet: %s\n", fn_version);
   printf("FN Board: ???\n");
   printf("Time: ???\n");
   printf("Tries: 0\n");

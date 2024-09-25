@@ -3,6 +3,7 @@
 #include <conio.h>
 #include <stdint.h>
 #include <string.h>
+#include <fujinet-fuji.h>
 
 typedef uint8_t *address;
 
@@ -31,6 +32,7 @@ typedef struct {
 
 address SmartPort_MLI;
 char buffer[32];
+AdapterConfigExtended ace;
 
 address find_smartport()
 {
@@ -59,9 +61,16 @@ void main()
   uint8_t err, rcv;
   uint16_t tries;
   int idx, dev_count, found_fuji, command;
+  uint8_t instafail = 0;
 
 
-  ui_init();
+  if (!fuji_get_adapter_config_extended(&ace)) {
+    strcpy(ace.fn_version, "FAIL");
+    instafail = 1;
+  }
+  ui_init(ace.fn_version);
+  if (instafail)
+    return;
 
   SmartPort_MLI = find_smartport();
 
