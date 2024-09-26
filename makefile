@@ -16,12 +16,13 @@ all: sp.exor
 
 sp.exor: sp.exor.bin
 	$(single-to-double)
-sp.exor.bin: sp.exor.o callsp.o appleid.o interface.o
+sp.exor.bin: sp.exor.o callsp.o appleid.o interface.o video7.o
 	$(link-bin)
 
 sp.exor.o: sp.exor.c appleid.h interface.h callsp.h
 appleid.o: appleid.c appleid.h
-interface.o: interface.c interface.h
+interface.o: interface.c interface.h video7.h
+video7.o: video7.c video7.h
 
 .c.o:
 	$(CC) -l $(basename $@).lst -c $(CFLAGS) -t $(PLATFORM) $< -o $@
