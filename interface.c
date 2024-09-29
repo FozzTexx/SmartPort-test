@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <peekpoke.h>
+#include <fujinet-clock.h>
 
 #define WINDOW_LEFT	32
 #define WINDOW_WIDTH	33
@@ -13,7 +14,7 @@
 #define WINDOW_BOTTOM	35
 #define CURSOR_PTR	40
 
-uint8_t tries_row;
+uint8_t tries_row, time_row;
 uint8_t device_count;
 uint16_t err_count = 0;
 uint8_t is_color = 0;
@@ -40,6 +41,8 @@ void ui_init(const char *fn_version)
   printf("Machine: %s\n", apple_name(machine_type));
   printf("FujiNet: %s\n", fn_version);
   printf("FN Board: ???\n");
+
+  time_row = wherey();
   printf("Time: ???\n");
 
   tries_row = wherey();
@@ -49,19 +52,54 @@ void ui_init(const char *fn_version)
   return;
 }
 
-void update_tries(int tries)
+void update_xy(uint8_t x, uint8_t y, const char *format, ...)
 {
-  uint8_t x, y, top;
+  uint8_t cx, cy, top;
+  va_list ap;
 
 
   top = PEEK(WINDOW_TOP);
-  x = wherex();
-  y = wherey();
+  cx = wherex();
+  cy = wherey();
   POKE(WINDOW_TOP, 0);
-  gotoxy(0, tries_row);
-  printf("Tries: %-5i  Errors: %-5i", tries, err_count);
-  POKE(WINDOW_TOP, top);
   gotoxy(x, y);
+  va_start(ap, format);
+  vcprintf(format, ap);
+  va_end(ap);
+  POKE(WINDOW_TOP, top);
+  gotoxy(cx, cy);
+  return;
+}
+
+void update_tries(int tries)
+{
+  update_xy(0, tries_row, "Tries: %-5i  Errors: %-5i", tries, err_count);
+  return;
+}
+
+void update_time()
+{
+  uint8_t tbuf[7];
+  struct datetime pbuf;
+  time_t now, runtime;
+  static time_t start = 0;
+
+
+  if (clock_get_time(tbuf, SIMPLE_BINARY) == FN_ERR_OK) {
+    pbuf.date.year = tbuf[1];
+    pbuf.date.mon = tbuf[2];
+    pbuf.date.day = tbuf[3];
+    pbuf.time.hour = tbuf[4];
+    pbuf.time.min = tbuf[5];
+    now = mktime_dt(&pbuf) + tbuf[6];
+    if (!start)
+      start = now;
+    runtime = now - start;
+    update_xy(0, time_row, "Time: %i:%02i:%02i   Run: %i:%02i:%02i ",
+	      tbuf[4], tbuf[5], tbuf[6],
+	      (int) runtime / 3600, (int) (runtime % 3600) / 60, (int) runtime % 60);
+  }
+
   return;
 }
 
@@ -149,7 +187,7 @@ void log_error(const char *format, ...)
       v7_selpage(PAGE_TEXT);
     }
   }
-  printf("%i: ", err_count);
+  printf("%u: ", err_count);
   if (is_color) {
     v7_set_colorxy(GR_COLOR_WHITE, GR_COLOR_ORANGE, 0, y2 + top, 40);
   }

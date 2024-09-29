@@ -160,6 +160,8 @@ void main()
       log_error("FujiNet not found");
       instafail = 0;
     }
+    else
+      update_time();
   }
 
   return;
